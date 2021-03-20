@@ -7,6 +7,10 @@ networks:
       config:
         - subnet: 10.2.0.0/24
 
+volumes:
+    nginx:
+
+
 services:
   unbound:
     image: "mvance/unbound:latest"
@@ -17,7 +21,22 @@ services:
       - "./unbound:/opt/unbound/etc/unbound/"
     networks:
       private_network:
-        ipv4_address: 10.2.0.200
+          ipv4_address: 10.2.0.200
+
+  nginx:
+      depends_on: [pihole, unbound]
+      image: nginx
+      container_name: nginx_web
+      restart: unless-stopped
+      volumes:
+          - nginx:/etc/nginx
+          - ./certs:/etc/nginx/certs
+      ports:
+          - "443:443"
+            # - "80:80"
+      networks:
+        private_network:
+            ipv4_address: 10.2.0.201
 
   wireguard:
     depends_on: [unbound, pihole]
